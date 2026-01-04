@@ -1,309 +1,238 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { database } from "../lib/firebase";
-import { ref, onValue, set } from "firebase/database";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 
-type SensorData = {
-  distance: number;
-  ph: number;
-  phVolt: number;
-  servo: number;
-  servo2: number;
-  pump: number;
-  waterDetected: number;
-  timestamp: number;
-};
-
-type DeviceStatus = {
-  status: number;
-  mode: string;
-};
-
-function cn(...cls: Array<string | false | null | undefined>) {
-  return cls.filter(Boolean).join(" ");
-}
-
-export default function Home() {
-  const [sensorData, setSensorData] = useState<SensorData | null>(null);
-  const [deviceStatus, setDeviceStatus] = useState<DeviceStatus | null>(null);
-  const [connected, setConnected] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+export default function LandingPage() {
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const sensorsRef = ref(database, "sensors");
-    const deviceRef = ref(database, "device");
-
-    const unsubscribeSensors = onValue(
-      sensorsRef,
-      (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          setSensorData(data);
-          setConnected(true);
-          setLastUpdate(new Date());
-        }
-      },
-      (error) => {
-        console.error("Firebase error:", error);
-        setConnected(false);
-      }
-    );
-
-    const unsubscribeDevice = onValue(deviceRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        setDeviceStatus(data);
-      }
-    });
-
-    const connectionCheck = setInterval(() => {
-      if (lastUpdate && Date.now() - lastUpdate.getTime() > 10000) {
-        setConnected(false);
-      }
-    }, 5000);
-
-    return () => {
-      unsubscribeSensors();
-      unsubscribeDevice();
-      clearInterval(connectionCheck);
-    };
-  }, [lastUpdate]);
-
-  const handleModeToggle = async () => {
-    const newMode = deviceStatus?.mode === "auto" ? "manual" : "auto";
-    try {
-      await set(ref(database, "device/mode"), newMode);
-    } catch (error) {
-      console.error("Failed to toggle mode:", error);
-    }
-  };
-
-  const handleServoControl = async (angle: number) => {
-    try {
-      await set(ref(database, "commands/servo"), angle);
-    } catch (error) {
-      console.error("Failed to control servo:", error);
-    }
-  };
-
-  const handlePumpControl = async (state: number) => {
-    try {
-      await set(ref(database, "commands/pump"), state);
-    } catch (error) {
-      console.error("Failed to control pump:", error);
-    }
-  };
-
-  const getWaterLevelStatus = () => {
-    if (!sensorData) return { label: "N/A", color: "bg-gray-500" };
-    if (sensorData.distance < 5)
-      return { label: "CRITICAL", color: "bg-red-500" };
-    if (sensorData.distance < 15)
-      return { label: "LOW", color: "bg-yellow-500" };
-    return { label: "NORMAL", color: "bg-green-500" };
-  };
-
-  const getPhStatus = () => {
-    if (!sensorData) return { label: "N/A", color: "bg-gray-500" };
-    if (sensorData.ph < 6.5)
-      return { label: "ACIDIC", color: "bg-orange-500" };
-    if (sensorData.ph > 7.5)
-      return { label: "ALKALINE", color: "bg-blue-500" };
-    return { label: "NEUTRAL", color: "bg-green-500" };
-  };
-
-  const waterStatus = getWaterLevelStatus();
-  const phStatus = getPhStatus();
-
-  const getTimeSinceUpdate = () => {
-    if (!lastUpdate) return "Never";
-    const seconds = Math.floor((Date.now() - lastUpdate.getTime()) / 1000);
-    if (seconds < 60) return `${seconds}s ago`;
-    const minutes = Math.floor(seconds / 60);
-    return `${minutes}m ago`;
-  };
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100">
-      <div className="pointer-events-none fixed inset-0 opacity-40">
-        <div className="absolute -top-32 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-emerald-500 blur-[120px]" />
-        <div className="absolute top-40 -right-20 h-72 w-72 rounded-full bg-sky-500 blur-[140px]" />
-        <div className="absolute -bottom-30 -left-30 h-80 w-80 rounded-full bg-fuchsia-500 blur-[160px]" />
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100">
+      <nav
+        className={`fixed top-0 z-50 w-full transition-all duration-300 ${scrolled ? "bg-slate-950/80 backdrop-blur-lg shadow-lg" : "bg-transparent"
+          }`}
+      >
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-400" />
+            <span className="text-xl font-bold">Terraflow</span>
+          </div>
+          <div className="hidden gap-8 md:flex">
+            <a href="#features" className="text-sm hover:text-emerald-400 transition">
+              Features
+            </a>
+            <a href="#how-it-works" className="text-sm hover:text-emerald-400 transition">
+              How It Works
+            </a>
+            <a href="#pricing" className="text-sm hover:text-emerald-400 transition">
+              Pricing
+            </a>
+          </div>
+          <Link
+            href="/dashboard"
+            className="rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-500 px-6 py-2 text-sm font-semibold text-slate-950 hover:shadow-lg hover:shadow-emerald-500/50 transition"
+          >
+            Open Dashboard
+          </Link>
+        </div>
+      </nav>
 
-      <div className="relative mx-auto max-w-7xl px-6 py-10">
-        <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80">
-              <span
-                className={cn(
-                  "h-2 w-2 rounded-full",
-                  connected ? "bg-emerald-400 animate-pulse" : "bg-red-400"
-                )}
-              />
-              {connected ? "Connected" : "Disconnected"} • Realtime
-            </div>
+      <section className="relative px-6 pt-32 pb-20">
+        <div className="pointer-events-none absolute inset-0 opacity-40">
+          <div className="absolute -top-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-emerald-500 blur-[150px]" />
+          <div className="absolute top-60 right-0 h-96 w-96 rounded-full bg-cyan-500 blur-[150px]" />
+        </div>
 
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
-              Terraflow Dashboard
-            </h1>
-            <p className="mt-2 max-w-xl text-sm text-white/70">
-              Monitoring real-time ketinggian air, pH, dan kontrol sistem
-              otomatis
-            </p>
+        <div className="relative mx-auto max-w-7xl text-center">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-400">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
+            Real-time IoT Monitoring System
           </div>
 
-          <div className="flex flex-col gap-2">
-            <div className="text-xs text-white/60">Device Mode</div>
-            <button
-              onClick={handleModeToggle}
-              disabled={!connected}
-              className={cn(
-                "rounded-lg px-4 py-2 text-sm font-semibold transition",
-                deviceStatus?.mode === "auto"
-                  ? "bg-emerald-500/90 text-slate-950 hover:bg-emerald-400"
-                  : "bg-amber-500/90 text-slate-950 hover:bg-amber-400",
-                !connected && "opacity-50 cursor-not-allowed"
-              )}
+          <h1 className="mb-6 text-5xl font-bold leading-tight md:text-7xl">
+            Smart Water Level
+            <br />
+            <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+              Management System
+            </span>
+          </h1>
+
+          <p className="mx-auto mb-10 max-w-2xl text-lg text-slate-400">
+            Monitor dan kontrol sistem ketinggian air secara real-time dengan teknologi IoT
+            ESP32. Dilengkapi sensor pH, kontrol servo otomatis, dan analytics dashboard.
+          </p>
+
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Link
+              href="/dashboard"
+              className="rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-500 px-8 py-4 text-lg font-semibold text-slate-950 hover:shadow-xl hover:shadow-emerald-500/50 transition"
             >
-              {deviceStatus?.mode === "auto" ? "AUTO MODE" : "MANUAL MODE"}
-            </button>
-          </div>
-        </header>
+              Launch Dashboard
+            </Link>
 
-        <section className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.25)] backdrop-blur">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="text-xs text-white/60">Water Level</h3>
-                <p className="mt-2 text-3xl font-bold">
-                  {sensorData?.distance.toFixed(1) ?? "—"}
-                </p>
-                <p className="text-sm text-white/50">cm</p>
-              </div>
-              <span
-                className={cn("h-3 w-3 rounded-full", waterStatus.color)}
-              />
-            </div>
-            <div className="mt-4 rounded-lg border border-white/10 bg-black/20 px-3 py-1 text-xs text-white/70">
-              {waterStatus.label}
-            </div>
+            <a
+              href="#how-it-works"
+              className="rounded-lg border border-white/10 bg-white/5 px-8 py-4 text-lg font-semibold hover:bg-white/10 transition"
+            >
+              Learn More
+            </a>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.25)] backdrop-blur">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="text-xs text-white/60">pH Level</h3>
-                <p className="mt-2 text-3xl font-bold">
-                  {sensorData?.ph.toFixed(2) ?? "—"}
-                </p>
-                <p className="text-sm text-white/50">
-                  {sensorData?.phVolt.toFixed(3) ?? "—"}V
-                </p>
-              </div>
-              <span className={cn("h-3 w-3 rounded-full", phStatus.color)} />
-            </div>
-            <div className="mt-4 rounded-lg border border-white/10 bg-black/20 px-3 py-1 text-xs text-white/70">
-              {phStatus.label}
-            </div>
+          <div className="mt-16 rounded-2xl border border-white/10 bg-white/5 p-2 shadow-2xl backdrop-blur">
+            <img
+              src="/api/placeholder/1200/600"
+              alt="Dashboard Preview"
+              className="rounded-lg"
+            />
           </div>
+        </div>
+      </section>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.25)] backdrop-blur">
-            <h3 className="text-xs text-white/60">Servo Main</h3>
-            <p className="mt-2 text-3xl font-bold">{sensorData?.servo ?? "—"}°</p>
-            <div className="mt-4 space-y-2">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleServoControl(0)}
-                  disabled={deviceStatus?.mode === "auto" || !connected}
-                  className="flex-1 rounded-lg bg-red-500/20 px-3 py-2 text-xs font-semibold text-red-300 hover:bg-red-500/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  CLOSE
-                </button>
-                <button
-                  onClick={() => handleServoControl(90)}
-                  disabled={deviceStatus?.mode === "auto" || !connected}
-                  className="flex-1 rounded-lg bg-green-500/20 px-3 py-2 text-xs font-semibold text-green-300 hover:bg-green-500/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  OPEN
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.25)] backdrop-blur">
-            <h3 className="text-xs text-white/60">Water Pump</h3>
-            <p className="mt-2 text-3xl font-bold">
-              {sensorData?.pump ? "ON" : "OFF"}
+      <section id="features" className="px-6 py-20">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-16 text-center">
+            <h2 className="mb-4 text-4xl font-bold">Fitur Unggulan</h2>
+            <p className="text-slate-400">
+              Platform IoT monitoring dengan fitur advanced yang jarang ditemukan
             </p>
-            <div className="mt-4">
-              <button
-                onClick={() => handlePumpControl(1)}
-                disabled={
-                  deviceStatus?.mode === "auto" ||
-                  sensorData?.pump === 1 ||
-                  !connected
-                }
-                className="w-full rounded-lg bg-blue-500/20 px-3 py-2 text-xs font-semibold text-blue-300 hover:bg-blue-500/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                ACTIVATE 2s
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <section className="mt-6 grid gap-6 md:grid-cols-2">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.25)] backdrop-blur">
-            <h2 className="text-sm font-medium text-white/80">System Status</h2>
-            <div className="mt-4 space-y-3">
-              <StatusRow
-                label="Device Online"
-                value={deviceStatus?.status === 1 ? "Yes" : "No"}
-              />
-              <StatusRow
-                label="Water Detected"
-                value={sensorData?.waterDetected === 1 ? "Yes" : "No"}
-              />
-              <StatusRow
-                label="Servo 2 (No Water)"
-                value={`${sensorData?.servo2 ?? "—"}°`}
-              />
-              <StatusRow label="Last Update" value={getTimeSinceUpdate()} />
-            </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.25)] backdrop-blur">
-            <h2 className="text-sm font-medium text-white/80">
-              Automation Rules
-            </h2>
-            <div className="mt-4 space-y-3 text-xs text-white/70">
-              <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                Distance ≥ 15cm → Servo OPEN (90°)
-              </div>
-              <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                Distance &lt; 5cm → Servo CLOSE (0°) + Pump ON 2s
-              </div>
-              <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                No Water Detected → Servo2 ON (90°)
-              </div>
-            </div>
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <FeatureCard
+              icon="📊"
+              title="Real-time Analytics"
+              description="Visualisasi data real-time dengan chart interaktif dan historical data analysis"
+            />
+            <FeatureCard
+              icon="🤖"
+              title="AI Predictions"
+              description="Prediksi level air menggunakan machine learning untuk antisipasi overflow"
+            />
+            <FeatureCard
+              icon="⚡"
+              title="Instant Alerts"
+              description="Notifikasi real-time via buzzer dan web notifications untuk kondisi kritis"
+            />
+            <FeatureCard
+              icon="🎛️"
+              title="Manual Override"
+              description="Kontrol manual servo dan pump dari dashboard untuk testing dan maintenance"
+            />
+            <FeatureCard
+              icon="📱"
+              title="Mobile Responsive"
+              description="Dashboard yang fully responsive, akses dari smartphone, tablet, atau desktop"
+            />
+            <FeatureCard
+              icon="💾"
+              title="Data Export"
+              description="Export historical data dalam format CSV, JSON, atau PDF untuk reporting"
+            />
           </div>
-        </section>
+        </div>
+      </section>
 
-        <footer className="mt-10 text-center text-xs text-white/45">
-          © {new Date().getFullYear()} Terraflow • Real-time IoT Monitoring
-        </footer>
-      </div>
-    </main>
+      <section id="how-it-works" className="px-6 py-20 bg-white/5">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-16 text-center">
+            <h2 className="mb-4 text-4xl font-bold">Cara Kerja</h2>
+            <p className="text-slate-400">
+              Sistem monitoring air otomatis dengan IoT ESP32
+            </p>
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-4">
+            <StepCard
+              number="1"
+              title="Sensor Reading"
+              description="ESP32 membaca data dari ultrasonic sensor (level air) dan pH sensor setiap 2 detik"
+            />
+            <StepCard
+              number="2"
+              title="Data Processing"
+              description="Data diproses dan dikirim ke Firebase Realtime Database via HTTP"
+            />
+            <StepCard
+              number="3"
+              title="Automation"
+              description="Servo motor membuka/tutup valve dan pump aktif otomatis berdasarkan threshold"
+            />
+            <StepCard
+              number="4"
+              title="Visualization"
+              description="Dashboard menampilkan data real-time dengan chart dan analytics"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="px-6 py-20">
+        <div className="mx-auto max-w-4xl text-center">
+          <h2 className="mb-6 text-4xl font-bold">Ready to Monitor?</h2>
+          <p className="mb-10 text-lg text-slate-400">
+            Mulai monitoring sistem air Anda sekarang dengan dashboard real-time
+          </p>
+          <Link
+            href="/dashboard"
+            className="inline-block rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-500 px-10 py-4 text-lg font-semibold text-slate-950 hover:shadow-xl hover:shadow-emerald-500/50 transition"
+          >
+            Open Dashboard Now
+          </Link>
+        </div>
+      </section>
+
+      <footer className="border-t border-white/10 px-6 py-12">
+        <div className="mx-auto max-w-7xl text-center text-sm text-slate-500">
+          <p>© 2025 Terraflow. Built with ESP32, Next.js, and Firebase.</p>
+        </div>
+      </footer>
+    </div>
   );
 }
 
-function StatusRow({ label, value }: { label: string; value: string }) {
+function FeatureCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: string;
+  title: string;
+  description: string;
+}) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3">
-      <span className="text-xs text-white/60">{label}</span>
-      <span className="text-sm font-semibold text-white/90">{value}</span>
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur transition hover:bg-white/10">
+      <div className="mb-4 text-4xl">{icon}</div>
+      <h3 className="mb-2 text-xl font-semibold">{title}</h3>
+      <p className="text-sm text-slate-400">{description}</p>
+    </div>
+  );
+}
+
+function StepCard({
+  number,
+  title,
+  description,
+}: {
+  number: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="text-center">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-xl font-bold text-slate-950">
+        {number}
+      </div>
+      <h3 className="mb-2 text-lg font-semibold">{title}</h3>
+      <p className="text-sm text-slate-400">{description}</p>
     </div>
   );
 }
