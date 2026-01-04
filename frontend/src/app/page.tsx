@@ -1,238 +1,212 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
+import * as React from "react";
+import { Droplets, Gauge, BarChart3, Zap, ArrowRight, CheckCircle2 } from "lucide-react";
+import { ThemeToggle } from "../components/ThemeToggle";
+import WaterParticles from "../components/WaterParticles";
+import Navbar from "../components/Navbar";
 
-export default function LandingPage() {
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
+export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100">
-      <nav
-        className={`fixed top-0 z-50 w-full transition-all duration-300 ${scrolled ? "bg-slate-950/80 backdrop-blur-lg shadow-lg" : "bg-transparent"
-          }`}
-      >
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-400" />
-            <span className="text-xl font-bold">Terraflow</span>
-          </div>
-          <div className="hidden gap-8 md:flex">
-            <a href="#features" className="text-sm hover:text-emerald-400 transition">
-              Features
-            </a>
-            <a href="#how-it-works" className="text-sm hover:text-emerald-400 transition">
-              How It Works
-            </a>
-            <a href="#pricing" className="text-sm hover:text-emerald-400 transition">
-              Pricing
-            </a>
-          </div>
-          <Link
-            href="/dashboard"
-            className="rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-500 px-6 py-2 text-sm font-semibold text-slate-950 hover:shadow-lg hover:shadow-emerald-500/50 transition"
-          >
-            Open Dashboard
-          </Link>
-        </div>
-      </nav>
+    <div className="relative min-h-screen bg-background text-foreground">
+      <WaterParticles />
+      {/* Navbar */}
+      <Navbar />
 
-      <section className="relative px-6 pt-32 pb-20">
-        <div className="pointer-events-none absolute inset-0 opacity-40">
-          <div className="absolute -top-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-emerald-500 blur-[150px]" />
-          <div className="absolute top-60 right-0 h-96 w-96 rounded-full bg-cyan-500 blur-[150px]" />
-        </div>
-
-        <div className="relative mx-auto max-w-7xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-400">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-            </span>
-            Real-time IoT Monitoring System
+      <main>
+        {/* Hero Section */}
+        <section className="relative pt-32 pb-20 overflow-hidden">
+          <div className="absolute inset-0 -z-10">
+            <div className="absolute top-0 right-1/4 h-96 w-96 rounded-full bg-primary/20 blur-[100px] opacity-50" />
+            <div className="absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-blue-500/20 blur-[100px] opacity-50" />
           </div>
 
-          <h1 className="mb-6 text-5xl font-bold leading-tight md:text-7xl">
-            Smart Water Level
-            <br />
-            <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-              Management System
-            </span>
-          </h1>
+          <div className="mx-auto max-w-7xl px-6 text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 shadow-sm mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-sm font-medium text-muted-foreground">Real Time Monitoring</span>
+            </div>
 
-          <p className="mx-auto mb-10 max-w-2xl text-lg text-slate-400">
-            Monitor dan kontrol sistem ketinggian air secara real-time dengan teknologi IoT
-            ESP32. Dilengkapi sensor pH, kontrol servo otomatis, dan analytics dashboard.
-          </p>
+            <h1 className="mx-auto max-w-4xl text-5xl font-bold tracking-tight sm:text-7xl mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+              Smart Water Management <br /> for the Future
+            </h1>
 
-          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link
-              href="/dashboard"
-              className="rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-500 px-8 py-4 text-lg font-semibold text-slate-950 hover:shadow-xl hover:shadow-emerald-500/50 transition"
-            >
-              Launch Dashboard
-            </Link>
-
-            <a
-              href="#how-it-works"
-              className="rounded-lg border border-white/10 bg-white/5 px-8 py-4 text-lg font-semibold hover:bg-white/10 transition"
-            >
-              Learn More
-            </a>
-          </div>
-
-          <div className="mt-16 rounded-2xl border border-white/10 bg-white/5 p-2 shadow-2xl backdrop-blur">
-            <img
-              src="/api/placeholder/1200/600"
-              alt="Dashboard Preview"
-              className="rounded-lg"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section id="features" className="px-6 py-20">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-16 text-center">
-            <h2 className="mb-4 text-4xl font-bold">Fitur Unggulan</h2>
-            <p className="text-slate-400">
-              Platform IoT monitoring dengan fitur advanced yang jarang ditemukan
+            <p className="mx-auto max-w-2xl text-lg text-muted-foreground mb-10 leading-relaxed">
+              Monitor water levels, pH quality, and control pumps automatically with our
+              IoT-powered dashboard. Real-time data for smarter decisions.
             </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
+              <Link
+                href="/dashboard"
+                className="flex items-center justify-center rounded-xl bg-primary px-12 py-4 text-lg font-semibold text-primary-foreground hover:bg-primary/90 transition-all shadow-lg hover:shadow-primary/25 min-w-[240px]"
+              >
+                Dashboard
+              </Link>
+            </div>
+
+            {/* Dashboard Preview */}
+            <div className="relative mx-auto max-w-5xl rounded-2xl border border-border bg-card/50 p-2 shadow-2xl backdrop-blur-xl">
+              <div className="rounded-xl overflow-hidden bg-background border border-border aspect-video relative group">
+                <img
+                  src="/dashboardPreview.png"
+                  alt="Terraflow Dashboard Preview"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-8">
+                  <p className="text-foreground font-medium bg-background/80 px-4 py-2 rounded-full backdrop-blur-md border border-border">Interactive Real-time Dashboard</p>
+                </div>
+              </div>
+            </div>
           </div>
+        </section>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <FeatureCard
-              icon="📊"
-              title="Real-time Analytics"
-              description="Visualisasi data real-time dengan chart interaktif dan historical data analysis"
-            />
-            <FeatureCard
-              icon="🤖"
-              title="AI Predictions"
-              description="Prediksi level air menggunakan machine learning untuk antisipasi overflow"
-            />
-            <FeatureCard
-              icon="⚡"
-              title="Instant Alerts"
-              description="Notifikasi real-time via buzzer dan web notifications untuk kondisi kritis"
-            />
-            <FeatureCard
-              icon="🎛️"
-              title="Manual Override"
-              description="Kontrol manual servo dan pump dari dashboard untuk testing dan maintenance"
-            />
-            <FeatureCard
-              icon="📱"
-              title="Mobile Responsive"
-              description="Dashboard yang fully responsive, akses dari smartphone, tablet, atau desktop"
-            />
-            <FeatureCard
-              icon="💾"
-              title="Data Export"
-              description="Export historical data dalam format CSV, JSON, atau PDF untuk reporting"
-            />
+        {/* Features Section */}
+        <section id="features" className="py-24 bg-secondary/30">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-bold tracking-tight mb-4 text-foreground">Powerful Features</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Everything you need to manage your water systems efficiently and effectively.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              <FeatureCard
+                icon={<Gauge className="h-6 w-6" />}
+                title="Real-time Monitoring"
+                description="Track water levels and pH values instantly with live updates from ESP32 sensors."
+              />
+              <FeatureCard
+                icon={<Zap className="h-6 w-6" />}
+                title="Automated Control"
+                description="Smart logic automatically manages pumps and servos based on sensor thresholds."
+              />
+              <FeatureCard
+                icon={<BarChart3 className="h-6 w-6" />}
+                title="Data Analytics"
+                description="Visualize historical trends and get insights to optimize your water usage."
+              />
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section id="how-it-works" className="px-6 py-20 bg-white/5">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-16 text-center">
-            <h2 className="mb-4 text-4xl font-bold">Cara Kerja</h2>
-            <p className="text-slate-400">
-              Sistem monitoring air otomatis dengan IoT ESP32
-            </p>
+        {/* How It Works */}
+        <section id="how-it-works" className="py-24">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="flex flex-col md:flex-row items-center gap-16">
+              <div className="flex-1 space-y-8">
+                <h2 className="text-3xl font-bold tracking-tight text-foreground">How It Works</h2>
+                <div className="space-y-6">
+                  <StepItem number="1" title="Sensors Collect Data" description="Ultrasonic and pH sensors continuously monitor the water tank state." />
+                  <StepItem number="2" title="ESP32 Processing" description="The microcontroller processes data and sends it to Firebase in real-time." />
+                  <StepItem number="3" title="Visual Dashboard" description="You view live stats and control devices directly from this web app." />
+                </div>
+              </div>
+              <div className="flex-1">
+                <div className="relative rounded-2xl border border-border bg-card p-12 shadow-xl">
+                  <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <Droplets className="h-64 w-64 rotate-12" />
+                  </div>
+                  <div className="relative z-10 space-y-6">
+                    <div className="flex items-center gap-4 p-4 rounded-lg bg-background border border-border">
+                      <Gauge className="h-8 w-8 text-primary" />
+                      <div>
+                        <h4 className="font-bold">Sensor Node</h4>
+                        <p className="text-xs text-muted-foreground">Active • Sending Data</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-center">
+                      <ArrowRight className="h-6 w-6 text-muted-foreground rotate-90" />
+                    </div>
+                    <div className="flex items-center gap-4 p-4 rounded-lg bg-background border border-border">
+                      <Zap className="h-8 w-8 text-yellow-500" />
+                      <div>
+                        <h4 className="font-bold">Cloud Database</h4>
+                        <p className="text-xs text-muted-foreground">Firebase Realtime DB</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-center">
+                      <ArrowRight className="h-6 w-6 text-muted-foreground rotate-90" />
+                    </div>
+                    <div className="flex items-center gap-4 p-4 rounded-lg bg-background border border-border">
+                      <BarChart3 className="h-8 w-8 text-blue-500" />
+                      <div>
+                        <h4 className="font-bold">Web Dashboard</h4>
+                        <p className="text-xs text-muted-foreground">User Interface</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+        </section>
 
-          <div className="grid gap-8 lg:grid-cols-4">
-            <StepCard
-              number="1"
-              title="Sensor Reading"
-              description="ESP32 membaca data dari ultrasonic sensor (level air) dan pH sensor setiap 2 detik"
-            />
-            <StepCard
-              number="2"
-              title="Data Processing"
-              description="Data diproses dan dikirim ke Firebase Realtime Database via HTTP"
-            />
-            <StepCard
-              number="3"
-              title="Automation"
-              description="Servo motor membuka/tutup valve dan pump aktif otomatis berdasarkan threshold"
-            />
-            <StepCard
-              number="4"
-              title="Visualization"
-              description="Dashboard menampilkan data real-time dengan chart dan analytics"
-            />
+        {/* Footer */}
+        <footer className="relative z-10 border-t border-border bg-card py-12">
+          <div className="mx-auto max-w-7xl px-6 grid md:grid-cols-4 gap-8">
+            <div className="col-span-2">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-lg font-bold">Terraflow</span>
+              </div>
+              <p className="text-sm text-muted-foreground max-w-sm">
+                Advanced water management solutions for home and industry.
+                Built with passion for efficiency and sustainability.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4 text-foreground">Platform</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link href="/dashboard" className="hover:text-primary">Dashboard</Link></li>
+                <li><Link href="/analytics" className="hover:text-primary">Analytics</Link></li>
+                <li><Link href="/about" className="hover:text-primary">About Us</Link></li>
+                <li><Link href="/developers" className="hover:text-primary">Developers</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4 text-foreground">Connect</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#" className="hover:text-primary">GitHub</a></li>
+                <li><a href="#" className="hover:text-primary">Twitter</a></li>
+                <li><a href="mailto:contact@terraflow.id" className="hover:text-primary">Contact</a></li>
+              </ul>
+            </div>
           </div>
-        </div>
-      </section>
-
-      <section className="px-6 py-20">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="mb-6 text-4xl font-bold">Ready to Monitor?</h2>
-          <p className="mb-10 text-lg text-slate-400">
-            Mulai monitoring sistem air Anda sekarang dengan dashboard real-time
-          </p>
-          <Link
-            href="/dashboard"
-            className="inline-block rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-500 px-10 py-4 text-lg font-semibold text-slate-950 hover:shadow-xl hover:shadow-emerald-500/50 transition"
-          >
-            Open Dashboard Now
-          </Link>
-        </div>
-      </section>
-
-      <footer className="border-t border-white/10 px-6 py-12">
-        <div className="mx-auto max-w-7xl text-center text-sm text-slate-500">
-          <p>© 2025 Terraflow. Built with ESP32, Next.js, and Firebase.</p>
-        </div>
-      </footer>
+          <div className="mx-auto max-w-7xl px-6 mt-12 pt-8 border-t border-border/50 text-center text-sm text-muted-foreground">
+            <p>© 2025 Terraflow. All rights reserved.</p>
+          </div>
+        </footer>
+      </main>
     </div>
   );
 }
 
-function FeatureCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: string;
-  title: string;
-  description: string;
-}) {
+function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur transition hover:bg-white/10">
-      <div className="mb-4 text-4xl">{icon}</div>
-      <h3 className="mb-2 text-xl font-semibold">{title}</h3>
-      <p className="text-sm text-slate-400">{description}</p>
+    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow group">
+      <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+        {icon}
+      </div>
+      <h3 className="mb-2 text-lg font-bold text-foreground">{title}</h3>
+      <p className="text-muted-foreground leading-relaxed">
+        {description}
+      </p>
     </div>
   );
 }
 
-function StepCard({
-  number,
-  title,
-  description,
-}: {
-  number: string;
-  title: string;
-  description: string;
-}) {
+function StepItem({ number, title, description }: { number: string; title: string; description: string }) {
   return (
-    <div className="text-center">
-      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-xl font-bold text-slate-950">
+    <div className="flex gap-4">
+      <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary border border-primary/20">
         {number}
       </div>
-      <h3 className="mb-2 text-lg font-semibold">{title}</h3>
-      <p className="text-sm text-slate-400">{description}</p>
+      <div>
+        <h3 className="font-bold text-lg text-foreground mb-1">{title}</h3>
+        <p className="text-muted-foreground">{description}</p>
+      </div>
     </div>
-  );
+  )
 }
