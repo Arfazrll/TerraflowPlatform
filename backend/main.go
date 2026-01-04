@@ -8,13 +8,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type SensorData struct {
+	Distance      float64 `json:"distance"`
+	Ph            float64 `json:"ph"`
+	PhVolt        float64 `json:"phVolt"`
+	Servo         int     `json:"servo"`
+	Servo2        int     `json:"servo2"`
+	Pump          int     `json:"pump"`
+	WaterDetected int     `json:"waterDetected"`
+	Timestamp     int64   `json:"timestamp"`
+}
+
+type DeviceStatus struct {
+	Status int    `json:"status"`
+	Mode   string `json:"mode"`
+}
+
+type CommandRequest struct {
+	Servo int `json:"servo,omitempty"`
+	Pump  int `json:"pump,omitempty"`
+}
+
 func main() {
 	port := getEnv("PORT", "8080")
 	allowedOrigins := getEnv("ALLOWED_ORIGINS", "http://localhost:3000")
 
 	r := gin.Default()
 
-	// CORS sederhana untuk dev
 	r.Use(func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
 		if origin != "" && isAllowedOrigin(origin, allowedOrigins) {
@@ -38,6 +58,20 @@ func main() {
 		})
 	})
 
+	r.GET("/api/config", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"firebaseConfig": gin.H{
+				"apiKey":            getEnv("FIREBASE_API_KEY", ""),
+				"authDomain":        getEnv("FIREBASE_AUTH_DOMAIN", ""),
+				"databaseURL":       getEnv("FIREBASE_DATABASE_URL", ""),
+				"projectId":         getEnv("FIREBASE_PROJECT_ID", ""),
+				"storageBucket":     getEnv("FIREBASE_STORAGE_BUCKET", ""),
+				"messagingSenderId": getEnv("FIREBASE_MESSAGING_SENDER_ID", ""),
+				"appId":             getEnv("FIREBASE_APP_ID", ""),
+			},
+		})
+	})
+
 	r.Run(":" + port)
 }
 
@@ -49,7 +83,6 @@ func getEnv(key, fallback string) string {
 }
 
 func isAllowedOrigin(origin string, allowed string) bool {
-	// allowed bisa berisi beberapa origin dipisah koma
 	for _, o := range strings.Split(allowed, ",") {
 		if strings.TrimSpace(o) == origin {
 			return true
