@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import * as React from "react";
-import { Droplets, Gauge, BarChart3, Zap, ArrowRight, CheckCircle2 } from "lucide-react";
-import { ThemeToggle } from "../components/ThemeToggle";
+import { Droplets, Gauge, BarChart3, Zap, ArrowRight } from "lucide-react";
 import WaterParticles from "../components/WaterParticles";
 import Navbar from "../components/Navbar";
+import Image from "next/image";
 
 export default function Home() {
   return (
@@ -28,7 +28,7 @@ export default function Home() {
               <span className="text-sm font-medium text-muted-foreground">Real Time Monitoring</span>
             </div>
 
-            <h1 className="mx-auto max-w-4xl text-5xl font-bold tracking-tight sm:text-7xl mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+            <h1 className="mx-auto max-w-4xl text-5xl font-bold tracking-tight sm:text-7xl mb-6 bg-clip-text text-transparent bg-linear-to-r from-foreground to-foreground/70">
               Smart Water Management <br /> for the Future
             </h1>
 
@@ -40,7 +40,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
               <Link
                 href="/dashboard"
-                className="flex items-center justify-center rounded-xl bg-primary px-12 py-4 text-lg font-semibold text-primary-foreground hover:bg-primary/90 transition-all shadow-lg hover:shadow-primary/25 min-w-[240px]"
+                className="flex items-center justify-center rounded-xl bg-primary px-12 py-4 text-lg font-semibold text-primary-foreground hover:bg-primary/90 transition-all shadow-lg hover:shadow-primary/25 min-w-60"
               >
                 Dashboard
               </Link>
@@ -49,12 +49,16 @@ export default function Home() {
             {/* Dashboard Preview */}
             <div className="relative mx-auto max-w-5xl rounded-2xl border border-border bg-card/50 p-2 shadow-2xl backdrop-blur-xl">
               <div className="rounded-xl overflow-hidden bg-background border border-border aspect-video relative group">
-                <img
-                  src="/dashboardPreview.png"
-                  alt="Terraflow Dashboard Preview"
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-8">
+                <div className="relative w-full h-full"> {/* Ensure parent has relative position and dimensions */}
+                  <Image
+                    src="/dashboardPreview.png"
+                    alt="Terraflow Dashboard Preview"
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
+                </div>
+                <div className="absolute inset-0 bg-linear-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-8">
                   <p className="text-foreground font-medium bg-background/80 px-4 py-2 rounded-full backdrop-blur-md border border-border">Interactive Real-time Dashboard</p>
                 </div>
               </div>
@@ -200,7 +204,7 @@ function FeatureCard({ icon, title, description }: { icon: React.ReactNode; titl
 function StepItem({ number, title, description }: { number: string; title: string; description: string }) {
   return (
     <div className="flex gap-4">
-      <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary border border-primary/20">
+      <div className="shrink-0 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary border border-primary/20">
         {number}
       </div>
       <div>

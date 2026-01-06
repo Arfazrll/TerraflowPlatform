@@ -1,87 +1,230 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  ReferenceLine,
+  ReferenceArea,
+} from "recharts";
 
 type ChartProps = {
   data: Array<{ timestamp: number; distance?: number; ph?: number }>;
   dataKey: "distance" | "ph";
   color: string;
+  unit?: string;
+  label?: string;
+  domain?: [number | "auto", number | "auto"];
+  isLoading?: boolean;
+  syncId?: string;
+  thresholds?: Array<{
+    value: number;
+    label: string;
+    color: string;
+  }>;
+  zones?: Array<{
+    y1: number;
+    y2: number;
+    color: string;
+    opacity: number;
+    label?: string;
+  }>;
 };
 
-export default function Chart({ data, dataKey, color }: ChartProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+export default function Chart({
+  data,
+  dataKey,
+  color,
+  unit = "",
+  label = "",
+  domain = ["auto", "auto"],
+  isLoading = false,
+  thresholds = [],
+  zones = [],
+  syncId,
+}: ChartProps) {
+  // Smart domain calculation to prevent zooming in on noise
+  // If the range (Max - Min) is too small, we force a wider range.
+  const calculateDomain = ([dataMin, dataMax]: [number, number]) => {
+    if (domain[0] !== "auto" && domain[1] !== "auto") return domain; // User forced domain
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || data.length === 0) return;
+    const min = dataMin || 0;
+    const max = dataMax || 10;
+    const range = max - min;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    // Minimum visual range to avoid "noise magnification"
+    const minRange = dataKey === 'ph' ? 1 : 5;
 
-    const width = canvas.width;
-    const height = canvas.height;
-    const padding = 40;
+    if (range < minRange) {
+      const padding = (minRange - range) / 2;
+      return [Math.max(0, min - padding), max + padding];
+    }
 
-    ctx.clearRect(0, 0, width, height);
+    // Default comfortable padding
+    const padding = range * 0.1;
+    return [Math.max(0, min - padding), max + padding];
+  };
 
-    const values = data.map((d) => d[dataKey] || 0);
-    const minValue = Math.min(...values);
-    const maxValue = Math.max(...values);
-    const range = maxValue - minValue || 1;
-
-    const xStep = (width - padding * 2) / (data.length - 1 || 1);
-
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-
-    data.forEach((point, index) => {
-      const value = point[dataKey] || 0;
-      const x = padding + index * xStep;
-      const y = height - padding - ((value - minValue) / range) * (height - padding * 2);
-
-      if (index === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
-      }
+  // Format timestamp for X-axis
+  const formatTime = (timestamp: number) => {
+    return new Date(timestamp).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
     });
+  };
 
-    ctx.stroke();
-
-    ctx.fillStyle = `${color}33`;
-    ctx.lineTo(width - padding, height - padding);
-    ctx.lineTo(padding, height - padding);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-    ctx.lineWidth = 1;
-    for (let i = 0; i <= 4; i++) {
-      const y = padding + (i * (height - padding * 2)) / 4;
-      ctx.beginPath();
-      ctx.moveTo(padding, y);
-      ctx.lineTo(width - padding, y);
-      ctx.stroke();
+  // Custom Tooltip
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const value = Number(payload[0].value);
+      return (
+        <div className="rounded-lg border border-border bg-card/95 backdrop-blur-sm px-4 py-3 shadow-xl ring-1 ring-border/50">
+          <p className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            {new Date(label).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+          </p>
+          <div className="flex items-center gap-3">
+            <span
+              className="h-3 w-1 rounded-full"
+              style={{ backgroundColor: color }}
+            />
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase text-muted-foreground font-semibold">Value</span>
+              <span className="text-xl font-bold text-foreground tabular-nums">
+                {value.toFixed(2)}
+                <span className="text-sm font-medium text-muted-foreground ml-1">{unit}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      );
     }
+    return null;
+  };
 
-    ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-    ctx.font = "10px monospace";
-    ctx.textAlign = "right";
-    for (let i = 0; i <= 4; i++) {
-      const value = maxValue - (i * range) / 4;
-      const y = padding + (i * (height - padding * 2)) / 4;
-      ctx.fillText(value.toFixed(1), padding - 10, y + 3);
-    }
-  }, [data, dataKey, color]);
+  if (isLoading) {
+    return (
+      <div className="h-[300px] w-full flex items-center justify-center rounded-lg border border-border bg-muted/10">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-sm text-muted-foreground">Loading chart data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="h-[300px] w-full flex items-center justify-center rounded-lg border border-border bg-muted/10">
+        <div className="flex flex-col items-center gap-2 text-center p-4">
+          <svg className="w-10 h-10 text-muted-foreground opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-muted-foreground font-medium">No Data Available</p>
+          <p className="text-xs text-muted-foreground/70">Waiting for sensor readings...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={600}
-      height={300}
-      className="w-full"
-      style={{ maxHeight: "300px" }}
-    />
+    <div className="w-full select-none">
+      <div className="h-[300px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart
+            data={data}
+            margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            syncId={syncId}
+          >
+            <defs>
+              <linearGradient id={`gradient-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={color} stopOpacity={0.4} />
+                <stop offset="95%" stopColor={color} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+
+            {/* Subtle Zones */}
+            {zones.map((z, i) => (
+              <ReferenceArea
+                key={`zone-${i}`}
+                y1={z.y1}
+                y2={z.y2}
+                fill={z.color}
+                fillOpacity={z.opacity * 0.5}
+                ifOverflow="extendDomain"
+              />
+            ))}
+
+            <CartesianGrid
+              strokeDasharray="3 3"
+              vertical={false}
+              stroke="var(--border)"
+              opacity={0.1}
+            />
+
+            <XAxis
+              dataKey="timestamp"
+              tickFormatter={formatTime}
+              tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+              axisLine={false}
+              tickLine={false}
+              minTickGap={60}
+              dy={10}
+            />
+
+            <YAxis
+              // @ts-ignore
+              domain={calculateDomain}
+              tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+              tickFormatter={(value) => Number(value).toFixed(1)}
+              axisLine={false}
+              tickLine={false}
+              width={50}
+            />
+
+            <Tooltip
+              content={<CustomTooltip />}
+              cursor={{ stroke: color, strokeWidth: 1, strokeDasharray: "4 4" }}
+              isAnimationActive={true}
+            />
+
+            {thresholds.map((t, i) => (
+              <ReferenceLine
+                key={`thresh-${i}`}
+                y={t.value}
+                stroke={t.color}
+                strokeDasharray="3 3"
+                opacity={0.7}
+                label={{
+                  value: t.label,
+                  fill: t.color,
+                  fontSize: 9,
+                  position: "insideBottomRight",
+                  fontWeight: 600
+                }}
+              />
+            ))}
+
+            <Area
+              name={label || dataKey}
+              type="monotone"
+              dataKey={dataKey}
+              stroke={color}
+              strokeWidth={2}
+              fill={`url(#gradient-${dataKey})`}
+              animationDuration={1000}
+              animationEasing="linear"
+              isAnimationActive={true}
+              activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--background)", fill: color }}
+            />
+
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
   );
 }

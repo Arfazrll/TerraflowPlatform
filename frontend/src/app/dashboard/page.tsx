@@ -246,11 +246,40 @@ export default function Dashboard() {
                         <section className="mb-8 grid gap-6 lg:grid-cols-2">
                             <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
                                 <h2 className="mb-4 text-lg font-semibold text-foreground">Water Level Trend</h2>
-                                <Chart data={historicalData} dataKey="distance" color="#10b981" />
+                                <Chart
+                                    data={historicalData}
+                                    dataKey="distance"
+                                    color="#10b981"
+                                    unit="cm"
+                                    thresholds={[
+                                        { value: 5, label: "CRITICAL", color: "#ef4444" },
+                                        { value: 15, label: "WARNING", color: "#eab308" },
+                                    ]}
+                                    zones={[
+                                        { y1: 0, y2: 5, color: "#ef4444", opacity: 0.1, label: "Danger" },
+                                        { y1: 5, y2: 15, color: "#eab308", opacity: 0.1, label: "Warning" },
+                                    ]}
+                                    domain={[0, "auto"]}
+                                />
                             </div>
                             <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
                                 <h2 className="mb-4 text-lg font-semibold text-foreground">pH Level Trend</h2>
-                                <Chart data={historicalData} dataKey="ph" color="#3b82f6" />
+                                <Chart
+                                    data={historicalData}
+                                    dataKey="ph"
+                                    color="#3b82f6"
+                                    unit=" pH"
+                                    thresholds={[
+                                        { value: 6.5, label: "Min Limit", color: "#f97316" },
+                                        { value: 7.5, label: "Max Limit", color: "#f97316" },
+                                    ]}
+                                    zones={[
+                                        { y1: 6.5, y2: 7.5, color: "#10b981", opacity: 0.1, label: "Ideal" },
+                                        { y1: 0, y2: 6.5, color: "#f97316", opacity: 0.05, label: "Acidic" },
+                                        { y1: 7.5, y2: 14, color: "#f97316", opacity: 0.05, label: "Alkaline" },
+                                    ]}
+                                    domain={[4, 10]}
+                                />
                             </div>
                         </section>
 
