@@ -24,9 +24,9 @@ export default function DevelopersPage() {
     const developers: Developer[] = [
         {
             id: 1,
-            name: "Developer Name 1",
-            nim: "123456789",
-            role: "Frontend Engineer",
+            name: "Syahril Arfian Almazril",
+            nim: "103032300013",
+            role: "Telkom University",
             image: "/placeholder-user.jpg",
             bio: "Passionate about building interactive user interfaces and creating seamless web experiences.",
             socials: {

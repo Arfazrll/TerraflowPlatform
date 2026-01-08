@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import { database } from "../../lib/firebase";
 import { ref, onValue } from "firebase/database";
-import Link from "next/link";
 import Chart from "../../components/Chart";
 import DashboardLayout from "../../components/DashboardLayout";
-import { Bot, Activity, AlertTriangle, Clock, TrendingUp, TrendingDown, Percent, Droplets, Zap } from "lucide-react";
+import { Bot, Activity, AlertTriangle, Clock, TrendingUp, TrendingDown, Droplets, Zap } from "lucide-react";
 
 type SensorData = {
     distance: number;
@@ -123,15 +122,13 @@ export default function AnalyticsPage() {
             maxDistance,
             criticalEvents: criticalEventsCount,
             uptime: 99.9,
-            stabilityScore: Math.max(0, 100 - (phStdDev * 20)), // Rough score based on deviation
+            stabilityScore: Math.max(0, 100 - (phStdDev * 20)), 
             phStability,
             waterTrend,
             healthScore,
             lastCriticalEvent: lastCritical,
         });
 
-        // Generate Event Log based on recent data changes
-        // This is a simplified simulation for the UI
         const newEvents: EventLog[] = [];
         if (lastPoint.distance < 5) newEvents.push({ id: Date.now() + '1', type: "CRITICAL", message: "Water Level Critical (< 5cm)", timestamp: lastPoint.timestamp });
         else if (lastPoint.distance < 15) newEvents.push({ id: Date.now() + '2', type: "WARNING", message: "Water Level Low", timestamp: lastPoint.timestamp });
