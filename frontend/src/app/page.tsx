@@ -11,11 +11,9 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-background text-foreground">
       <WaterParticles />
-      {/* Navbar */}
       <Navbar />
 
       <main>
-        {/* Hero Section */}
         <section className="relative pt-32 pb-20 overflow-hidden">
           <div className="absolute inset-0 -z-10">
             <div className="absolute top-0 right-1/4 h-96 w-96 rounded-full bg-primary/20 blur-[100px] opacity-50" />
@@ -46,10 +44,9 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Dashboard Preview */}
             <div className="relative mx-auto max-w-5xl rounded-2xl border border-border bg-card/50 p-2 shadow-2xl backdrop-blur-xl">
               <div className="rounded-xl overflow-hidden bg-background border border-border aspect-video relative group">
-                <div className="relative w-full h-full"> {/* Ensure parent has relative position and dimensions */}
+                <div className="relative w-full h-full">
                   <Image
                     src="/dashboardPreview.png"
                     alt="Terraflow Dashboard Preview"
@@ -66,7 +63,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Features Section */}
         <section id="features" className="py-24 bg-secondary/30">
           <div className="mx-auto max-w-7xl px-6">
             <div className="text-center mb-16">
@@ -96,7 +92,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* How It Works */}
         <section id="how-it-works" className="py-24">
           <div className="mx-auto max-w-7xl px-6">
             <div className="flex flex-col md:flex-row items-center gap-16">
@@ -148,7 +143,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Footer */}
         <footer className="relative z-10 border-t border-border bg-card py-12">
           <div className="mx-auto max-w-7xl px-6 grid md:grid-cols-4 gap-8">
             <div className="col-span-2">

@@ -21,10 +21,10 @@ type AnalyticsData = {
     maxDistance: number;
     criticalEvents: number;
     uptime: number;
-    stabilityScore: number; // 0-100
+    stabilityScore: number;
     phStability: "Stable" | "Fluctuating" | "Volatile";
-    waterTrend: number; // cm/hour
-    healthScore: number; // 0-100
+    waterTrend: number;
+    healthScore: number;
     lastCriticalEvent: string | null;
 };
 
@@ -60,7 +60,6 @@ export default function AnalyticsPage() {
             if (data) {
                 setHistoricalData((prev) => {
                     const newData = [...prev, { ...data, timestamp: Date.now() }];
-                    // Limit to last 200 points for better trend analysis
                     return newData.slice(-200);
                 });
             }
@@ -75,28 +74,21 @@ export default function AnalyticsPage() {
         const distances = historicalData.map((d) => d.distance);
         const pHs = historicalData.map((d) => d.ph);
 
-        // Basic Stats
         const avgDistance = distances.reduce((a, b) => a + b, 0) / distances.length;
         const avgPH = pHs.reduce((a, b) => a + b, 0) / pHs.length;
         const minDistance = Math.min(...distances);
         const maxDistance = Math.max(...distances);
 
-        // Critical Events (e.g. Water Level < 5cm or pH < 4)
         const criticals = historicalData.filter((d) => d.distance < 5 || d.ph < 4 || d.ph > 10);
         const criticalEventsCount = criticals.length;
         const lastCritical = criticals.length > 0 ? new Date(criticals[criticals.length - 1].timestamp).toLocaleTimeString() : null;
 
-        // --- Advanced Calculations ---
-
-        // 1. Stability (Standard Deviation of pH)
         const phVariance = pHs.reduce((sum, val) => sum + Math.pow(val - avgPH, 2), 0) / pHs.length;
         const phStdDev = Math.sqrt(phVariance);
         let phStability: "Stable" | "Fluctuating" | "Volatile" = "Stable";
         if (phStdDev > 0.5) phStability = "Fluctuating";
         if (phStdDev > 1.0) phStability = "Volatile";
 
-        // 2. Water Trend (cm per hour)
-        // Take first and last point of the visibly loaded data
         const firstPoint = historicalData[0];
         const lastPoint = historicalData[historicalData.length - 1];
         const timeDiffHours = (lastPoint.timestamp - firstPoint.timestamp) / (1000 * 60 * 60);
@@ -106,11 +98,9 @@ export default function AnalyticsPage() {
             waterTrend = (lastPoint.distance - firstPoint.distance) / timeDiffHours;
         }
 
-        // 3. System Health Score (0-100)
-        // Deduct points for Warning/Critical zones
         let healthDeduction = 0;
-        if (lastPoint.distance < 10) healthDeduction += 20; // Low water warning
-        if (lastPoint.ph < 5 || lastPoint.ph > 9) healthDeduction += 30; // Bad pH
+        if (lastPoint.distance < 10) healthDeduction += 20;
+        if (lastPoint.ph < 5 || lastPoint.ph > 9) healthDeduction += 30;
         if (phStability === "Volatile") healthDeduction += 10;
 
         const healthScore = Math.max(0, 100 - healthDeduction);
@@ -122,7 +112,7 @@ export default function AnalyticsPage() {
             maxDistance,
             criticalEvents: criticalEventsCount,
             uptime: 99.9,
-            stabilityScore: Math.max(0, 100 - (phStdDev * 20)), 
+            stabilityScore: Math.max(0, 100 - (phStdDev * 20)),
             phStability,
             waterTrend,
             healthScore,
@@ -135,7 +125,6 @@ export default function AnalyticsPage() {
 
         if (lastPoint.ph > 8) newEvents.push({ id: Date.now() + '3', type: "WARNING", message: "pH High (Alkaline)", timestamp: lastPoint.timestamp });
 
-        // Keep unique events only (simplified)
         setEvents(newEvents.reverse().slice(0, 5));
 
     }, [historicalData]);
@@ -150,14 +139,12 @@ export default function AnalyticsPage() {
                             Deep analysis of system performance, trends, and health.
                         </p>
                     </div>
-                    {/* Health Assessment Badge */}
                     <div className={`px-4 py-2 rounded-full border ${analytics.healthScore > 80 ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500'} flex items-center gap-2`}>
                         <Activity className="w-5 h-5" />
                         <span className="font-bold">System Health: {analytics.healthScore.toFixed(0)}%</span>
                     </div>
                 </header>
 
-                {/* Primary Metrics */}
                 <section className="mb-8 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                     <AnalyticsCard
                         title="Avg Water Level"
@@ -191,7 +178,6 @@ export default function AnalyticsPage() {
                 </section>
 
                 <div className="grid gap-6 lg:grid-cols-3 mb-8">
-                    {/* Usage/Trend Charts */}
                     <div className="lg:col-span-2 space-y-6">
                         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
                             <div className="flex items-center justify-between mb-4">
@@ -210,7 +196,6 @@ export default function AnalyticsPage() {
                         </div>
                     </div>
 
-                    {/* Side Panel: Insights & Logs */}
                     <div className="space-y-6">
                         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
                             <h2 className="mb-4 text-lg font-semibold text-foreground flex items-center gap-2">
