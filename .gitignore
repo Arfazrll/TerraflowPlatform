@@ -12,3 +12,5 @@ pom.xml.asc
 .lein-failures
 .nrepl-port
 .cpcache/
+deployments/.env
+firmware/esp32_sensor/src/secrets.h
