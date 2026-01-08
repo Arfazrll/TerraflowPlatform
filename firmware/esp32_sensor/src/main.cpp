@@ -4,7 +4,6 @@
 #include <ESP32Servo.h> 
 #include "secrets.h"
 
-// --- PIN DEFINITIONS ---
 #define TRIG_PIN       19
 #define ECHO_PIN       18
 #define BUZZER_PIN     13
@@ -13,13 +12,11 @@
 #define PUMP_PIN       25
 #define PH_SENSOR_PIN  35
 
-// --- TIMING VARIABLES ---
 const unsigned long READ_INTERVAL = 2500;
 unsigned long lastReadTime = 0;
 unsigned long lastFirebaseCheck = 0;
 const unsigned long FIREBASE_CHECK_INTERVAL = 2000;
 
-// --- SENSOR VARIABLES ---
 int sensorErrorCount = 0;
 const int MAX_SENSOR_ERRORS = 5;
 float lastValidDistance = 100.0;
@@ -27,21 +24,17 @@ float calibration_value = 20.80 - 5.05;
 unsigned long int avgval;
 int buffer_arr[10], temp;
 
-// --- SERVO OBJECT ---
 Servo myServo; 
 int currentServo2Angle = -1;
 
-// --- PUMP LOGIC VARIABLES ---
 unsigned long pumpStartTime = 0;
 bool pumpRunning = false;
-bool pumpHasRun = false; // Kunci Pompa
+bool pumpHasRun = false;
 
-// --- BUZZER LOGIC VARIABLES (BARU) ---
 unsigned long buzzerStartTime = 0;
 bool buzzerActive = false;
-bool buzzerHasRun = false; // Kunci Buzzer
+bool buzzerHasRun = false;
 
-// --- MANUAL MODE & FIREBASE STATE ---
 bool manualMode = false;
 int manualServo2Angle = -1;
 bool manualPumpState = false;
@@ -50,11 +43,10 @@ float lastSentPh = -999;
 int lastSentServo = -999;
 int lastSentPump = -999;
 
-// --- PROTOTYPES ---
 float measureDistance();
 float readPH(float &outVolt);
 void setServo2Angle(int angle);
-void controlSystemLogic(float distance); // Fungsi kontrol gabungan
+void controlSystemLogic(float distance);
 void sendToFirebase(float distance, float ph, float volt);
 void checkFirebaseCommands();
 bool sendHTTP(String path, String value, int retries = 2);
@@ -76,17 +68,14 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   pinMode(PUMP_PIN, OUTPUT);
 
-  // Default States
-  digitalWrite(PUMP_PIN, HIGH); // Relay Active LOW (HIGH = OFF)
+  digitalWrite(PUMP_PIN, HIGH);
   digitalWrite(LED_PIN, LOW);
   digitalWrite(BUZZER_PIN, LOW);
 
-  // Servo Setup
   myServo.setPeriodHertz(50);    
   myServo.attach(SERVO2_PIN);    
   setServo2Angle(90); 
 
-  // WiFi Setup
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(true);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -109,30 +98,25 @@ void loop() {
 
   if (WiFi.status() != WL_CONNECTED) reconnectWiFi();
 
-  // --- 1. TIMER POMPA (Auto OFF 2 detik) ---
   if (pumpRunning && (now - pumpStartTime >= 2000)) {
-    digitalWrite(PUMP_PIN, HIGH); // OFF
+    digitalWrite(PUMP_PIN, HIGH);
     pumpRunning = false;
-    pumpHasRun = true; // KUNCI POMPA
+    pumpHasRun = true;
     Serial.println("Pump: OFF (Locked)");
     if (WiFi.status() == WL_CONNECTED) sendHTTP("/sensors/pump.json", "0", 1);
   }
 
-  // --- 2. TIMER BUZZER (Auto OFF 2 detik) ---
   if (buzzerActive && (now - buzzerStartTime >= 2000)) {
-    digitalWrite(BUZZER_PIN, LOW); // OFF (Silent)
-    // Atau noTone(BUZZER_PIN) jika pakai passive buzzer
+    digitalWrite(BUZZER_PIN, LOW);
     buzzerActive = false;
-    buzzerHasRun = true; // KUNCI BUZZER
+    buzzerHasRun = true;
     Serial.println("Buzzer: OFF (Locked)");
   }
 
-  // --- 3. LOGIKA SENSOR & KONTROL ---
   if (now - lastReadTime >= READ_INTERVAL) {
     lastReadTime = now;
     float distance = measureDistance();
 
-    // Error handling
     if (distance <= 0) {
       sensorErrorCount++;
       if (sensorErrorCount >= MAX_SENSOR_ERRORS) distance = 0; 
@@ -145,7 +129,6 @@ void loop() {
     float phVolt;
     float phValue = readPH(phVolt);
 
-    // Debug Print
     Serial.printf("Level: %.1f cm | pH: %.2f | Servo: %d | Pump: %s | Buzzer: %s\n", 
                   distance, phValue, currentServo2Angle, 
                   pumpHasRun ? "LOCKED" : "READY", 
@@ -156,7 +139,6 @@ void loop() {
     if (!manualMode) {
       controlSystemLogic(distance);
     } else {
-      // Manual Mode Logic
       if (manualServo2Angle >= 0 && currentServo2Angle != manualServo2Angle) {
         setServo2Angle(manualServo2Angle);
         if(WiFi.status() == WL_CONNECTED) sendHTTP("/sensors/servo2.json", String(manualServo2Angle), 1);
@@ -176,46 +158,37 @@ void loop() {
   }
 }
 
-// --- LOGIKA UTAMA (GABUNGAN) ---
 void controlSystemLogic(float distance) {
   
-  // === KONDISI AMAN (> 5cm) ===
   if (distance > 5.0) {
     
-    // 1. RESET KUNCI POMPA
     if (pumpHasRun) {
       pumpHasRun = false;
       Serial.println("System RESET: Pump Ready");
     }
 
-    // 2. RESET KUNCI BUZZER
     if (buzzerHasRun) {
       buzzerHasRun = false;
       Serial.println("System RESET: Buzzer Ready");
     }
-    // Pastikan buzzer mati jika air tiba-tiba naik sebelum 2 detik
     if (buzzerActive) {
         digitalWrite(BUZZER_PIN, LOW);
         buzzerActive = false;
     }
 
-    // 3. SERVO BUKA
     if (currentServo2Angle != 0) {
       setServo2Angle(0);
       if(WiFi.status() == WL_CONNECTED) sendHTTP("/sensors/servo2.json", "90", 1);
     }
   } 
   
-  // === KONDISI KRITIS (<= 5cm) ===
   else {
     
-    // 1. SERVO TUTUP
     if (currentServo2Angle != 90) {
       setServo2Angle(90);
       if(WiFi.status() == WL_CONNECTED) sendHTTP("/sensors/servo2.json", "0", 1);
     }
 
-    // 2. POMPA ON (ONE-SHOT)
     if (!pumpRunning && !pumpHasRun) {
       Serial.println("ACTION: Pump ON");
       digitalWrite(PUMP_PIN, LOW);
@@ -224,20 +197,15 @@ void controlSystemLogic(float distance) {
       if(WiFi.status() == WL_CONNECTED) sendHTTP("/sensors/pump.json", "1", 1);
     }
 
-    // 3. BUZZER ON (ONE-SHOT)
     if (!buzzerActive && !buzzerHasRun) {
       Serial.println("ACTION: Buzzer ON");
-      // Jika Buzzer Aktif (bunyi saat dikasi tegangan):
       digitalWrite(BUZZER_PIN, HIGH); 
-      // Jika Buzzer Pasif (perlu nada), ganti baris atas dengan: tone(BUZZER_PIN, 2000);
       
       buzzerActive = true;
       buzzerStartTime = millis();
     }
   }
 }
-
-// --- HELPER FUNCTIONS ---
 
 void setServo2Angle(int angle) {
   angle = constrain(angle, 0, 180);

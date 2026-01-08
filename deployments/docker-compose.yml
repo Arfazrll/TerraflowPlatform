@@ -25,7 +25,6 @@ services:
       context: ../frontend
       dockerfile: Dockerfile
       args:
-        # Pass these as build args so they get baked into the Next.js app
         NEXT_PUBLIC_FIREBASE_API_KEY: ${FIREBASE_API_KEY}
         NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${FIREBASE_AUTH_DOMAIN}
         NEXT_PUBLIC_FIREBASE_DATABASE_URL: ${FIREBASE_DATABASE_URL}
